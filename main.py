@@ -127,16 +127,22 @@ print(process_ids())
 
 #----------------------------------------------------------------------------------------------------
 # Bessssssssssssst code
-
-
 import psutil
+import re
 
 
 def get():
     listOfOricObjects = []
     for proc in psutil.process_iter():
         try:
-            pinfo = proc.as_dict(attrs=['pid','name','memory_percent','cpu_percent','connections','cmdline'])
+            # pinfo = proc.as_dict(attrs=['pid','name','memory_percent','cpu_percent','connections','cmdline',
+            #                             'create_time***', 'cwd', 'environ', 'exe', 'io_counters', 'ionice',
+            #                             'memory_full_info', 'memory_info', 'memory_maps', 'memory_percent', 'name',
+            #                             'nice', 'num_ctx_switches', 'num_handles', 'num_threads',
+            #                             'open_files','ppid', 'status', 'threads', ])
+            pinfo = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'cmdline',
+                                         'cwd'])
+
             pinfo['vms'] = proc.memory_info().vms / (1024 * 1024)
             listOfOricObjects.append(pinfo)
         except (psutil.NoSuchProcess,psutil.AccessDenied,psutil.ZombieProcess):
@@ -160,3 +166,12 @@ for i in lista:
         print(f"Path = {i['cmdline'][0]}")
     else:
         print(f"Path = {i['cmdline']}")
+    version = re.compile(r"(\d+ ?$|\d+.?\d+ ?$|\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
+    if type(i['cwd']) == str:
+        matches = version.findall(i['cwd'])
+        if len(matches) > 0:
+            print(f"cwd = {matches[0]}")
+        else:
+            print(f"cwd2 = {i['cwd']}")
+    else:
+        print(f"cwd1 = {i['cwd']}")
