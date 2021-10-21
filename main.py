@@ -123,3 +123,38 @@ def process_ids():
 
 
 print(process_ids())
+
+
+#----------------------------------------------------------------------------------------------------
+# Bessssssssssssst code
+
+import psutil
+
+
+def get():
+    listOfOricObjects = []
+    for proc in psutil.process_iter():
+        try:
+            pinfo = proc.as_dict(attrs=['pid','name','memory_percent','cpu_percent','connections','cmdline'])
+            pinfo['vms'] = proc.memory_info().vms / (1024 * 1024)
+            listOfOricObjects.append(pinfo)
+        except (psutil.NoSuchProcess,psutil.AccessDenied,psutil.ZombieProcess):
+            pass
+    return listOfOricObjects
+lista = get()
+
+for i in lista:
+    print(f"memory_percent = {i['memory_percent']}")
+    print(f"Process ID = {i['pid']}")
+    print(f"Name = {i['name']}")
+    print(f"VMS = {i['vms']}")
+    print(f"CPU = {i['cpu_percent']}")
+    if len(i['connections']) > 0:
+        for x in range(len(i['connections'])):
+            print(f"Poorts = {i['connections'][x][3][1]}")
+    else:
+        print(f"Poorts = {i['connections']}")
+    if type(i['cmdline']) == list and len(i['cmdline']) > 0:
+        print(f"Path = {i['cmdline'][0]}")
+    else:
+        print(f"Path = {i['cmdline']}")
