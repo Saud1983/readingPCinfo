@@ -135,12 +135,12 @@ def get():
     listOfOricObjects = []
     for proc in psutil.process_iter():
         try:
-            # pinfo = proc.as_dict(attrs=['pid','name','memory_percent','cpu_percent','connections','cmdline',
-            #                             'create_time***', 'cwd', 'environ', 'exe', 'io_counters', 'ionice',
-            #                             'memory_full_info', 'memory_info', 'memory_maps', 'memory_percent', 'name',
-            #                             'nice', 'num_ctx_switches', 'num_handles', 'num_threads',
+            # pinfo = proc.as_dict(attrs=['pid','name','memory_percent','cpu_percent','connections','cmdline***',
+            #                             'create_time***', 'cwd', 'environ***', 'exe', 'io_counters***', 'ionice***',
+            #                             'memory_full_info***', 'memory_info***', 'memory_maps***',
+            #                             'nice***', 'num_ctx_switches', 'num_handles', 'num_threads',
             #                             'open_files','ppid', 'status', 'threads', ])
-            pinfo = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'cmdline',
+            pinfo = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'exe',
                                          'cwd'])
 
             pinfo['vms'] = proc.memory_info().vms / (1024 * 1024)
@@ -153,19 +153,19 @@ lista = get()
 
 for i in lista:
     ports = []
-    print(f"memory_percent = {i['memory_percent']}")
+    print(f"\nmemory_percent = {i['memory_percent']}")
     print(f"Process ID = {i['pid']}")
     print(f"Name = {i['name']}")
-    print(f"VMS = {i['vms']}")
+    print(f"Memory Usage = {i['vms']}")
     print(f"CPU = {i['cpu_percent']}")
     if len(i['connections']) > 0:
         for x in range(len(i['connections'])):
             ports.append(i['connections'][x][3][1])
     print(f"Ports = {ports}")
-    if type(i['cmdline']) == list and len(i['cmdline']) > 0:
-        print(f"Path = {i['cmdline'][0]}")
+    if type(i['exe']) == str:
+        print(f"Path = {i['exe']}")
     else:
-        print(f"Path = {i['cmdline']}")
+        print(f"Path = {i['exe']}")
     version = re.compile(r"(\d+ ?$|\d+.?\d+ ?$|\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
     if type(i['cwd']) == str:
         matches = version.findall(i['cwd'])
