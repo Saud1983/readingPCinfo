@@ -128,6 +128,7 @@ print(process_ids())
 #----------------------------------------------------------------------------------------------------
 # Bessssssssssssst code
 
+
 import psutil
 
 
@@ -143,7 +144,9 @@ def get():
     return listOfOricObjects
 lista = get()
 
+
 for i in lista:
+    ports = []
     print(f"memory_percent = {i['memory_percent']}")
     print(f"Process ID = {i['pid']}")
     print(f"Name = {i['name']}")
@@ -151,9 +154,8 @@ for i in lista:
     print(f"CPU = {i['cpu_percent']}")
     if len(i['connections']) > 0:
         for x in range(len(i['connections'])):
-            print(f"Poorts = {i['connections'][x][3][1]}")
-    else:
-        print(f"Poorts = {i['connections']}")
+            ports.append(i['connections'][x][3][1])
+    print(f"Ports = {ports}")
     if type(i['cmdline']) == list and len(i['cmdline']) > 0:
         print(f"Path = {i['cmdline'][0]}")
     else:
