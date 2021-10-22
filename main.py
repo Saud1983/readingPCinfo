@@ -170,11 +170,11 @@ for i in lista:
     if type(i['cwd']) == str:
         matches = version.findall(i['cwd'])
         if len(matches) > 0:
-            print(f"cwd = {matches[0]}")
+            print(f"Version = {matches[0]}")
         else:
-            print(f"cwd2 = {i['cwd']}")
+            print(f"No Version = {i['cwd']}")
     else:
-        print(f"cwd1 = {i['cwd']}")
+        print(f"Version is None = {i['cwd']}")
 
 
 #--------------------------------------------------------------------------------------
