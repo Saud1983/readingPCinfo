@@ -175,3 +175,59 @@ for i in lista:
             print(f"cwd2 = {i['cwd']}")
     else:
         print(f"cwd1 = {i['cwd']}")
+
+
+#--------------------------------------------------------------------------------------
+# Test code for reading a dictionary
+
+# {'client00': {'account_info': {
+# 'account_balance': 0,
+# 'account_id': 1022821753,
+# 'account_password': '0000',
+# 'account_type': 'normal'},
+# 'personal_info': {
+# 'National_id': 1022818684,
+# 'first_name': 'Khalid',
+# 'last_name': 'Waleed',
+# 'mobile_no': 500053197}},
+# 'client0': {'account_info': {
+# 'account_balance': 0,
+# 'account_id': 1066865284,
+# 'account_password': '0000',
+# 'account_type': 'normal'},
+# 'personal_info': {'National_id': 1066858745,
+# 'first_name': 'Ali',
+# 'last_name': 'Ahmed',
+# 'mobile_no': 533222025}}}
+
+import ast, pprint, re
+
+
+
+running = True
+while running:  # Program starts here.
+    choice1 = input("Enter the account number, or"
+                    " '1' to create a new account,"
+                    " '2' to check the clients book"
+                    " '0' to stop the program :\n")
+    a='a-zA-Z'
+    account = '1066865284'
+
+    pattern = re.compile(fr"'[{a}]+_[{a}]+': ?{account},")
+    with open('clients_book.txt', 'r+') as c:
+        # cont = c.read()
+        matches = pattern.findall(c.read())
+        for m in matches:
+            print(m)
+        # dictionary = ast.literal_eval(matches)
+        dictionary = {}
+    if choice1 == "2":  # 3rd choice
+        # print(dictionary)
+        choice1 = '1066865284'
+
+
+
+        for element in dictionary.items():
+            if str(element[1]['account_info']['account_id']) == choice1:  # Here the choice can be an account number
+                item = element[1]
+                pprint.pprint(item)
