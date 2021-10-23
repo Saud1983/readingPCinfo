@@ -147,27 +147,26 @@ cur.execute(""" CREATE TABLE processes (
             )""")
 
 
-def get():
-    listOfOricObjects = []
+def data_getter():
+    list_of_oric_objects = []
     for proc in psutil.process_iter():
         try:
-            pinfo = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'exe',
-                                         'cwd'])
+            p_info = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'exe', 'cwd'])
 
-            pinfo['vms'] = proc.memory_info().vms / (1024 * 1024)
-            listOfOricObjects.append(pinfo)
-        except (psutil.NoSuchProcess,psutil.AccessDenied,psutil.ZombieProcess):
+            p_info['vms'] = proc.memory_info().vms / (1024 * 1024)
+            list_of_oric_objects.append(p_info)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
-    return listOfOricObjects
+    return list_of_oric_objects
 
 
-def collect():
-    lista = get()
+def collect_more_date():
+    all_process_list = data_getter()
 
-
-    for i in lista:
+    for i in all_process_list:
         ports = []
-        # print(f"\nmemory_percent = {i['memory_percent']}")
+        # print("\n")
+        # print(f"memory_percent = {i['memory_percent']}")
         mp = i['memory_percent']
         # print(f"Process ID = {i['pid']}")
         pid = i['pid']
@@ -184,7 +183,11 @@ def collect():
         prt = str(ports)
         # print(f"Path = {i['exe']}")
         path = i['exe']
-        version_pattern = re.compile(r"(\d+ ?$|\d+.?\d+ ?$|\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
+        version_pattern = re.compile(r"(\d+ ?$|"
+                                     r"\d+.?\d+ ?$|"
+                                     r"\d+.?\d+.?\d+ ?$|"
+                                     r"\d+.?\d+.?\d+.?\d+ ?$|"
+                                     r"\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
         if type(i['cwd']) == str:
             matches = version_pattern.findall(i['cwd'])
             if len(matches) > 0:
@@ -196,26 +199,33 @@ def collect():
         else:
             # print(f"Version = None")  # {i['cwd']}")
             version = 'None'
-
         with conn:
-            cur.execute("INSERT INTO processes VALUES (:memory_percent, :process_ID, :name, :memory_usage, :cpu, :ports, :path, :version)", {'memory_percent': mp ,'process_ID': pid, 'name': name, 'memory_usage': vms, 'cpu': cpu, 'ports': prt, 'path': path, 'version': version})
+            cur.execute("INSERT INTO processes VALUES "
+                        "(:memory_percent, :process_ID, :name, :memory_usage, :cpu, :ports, :path, :version)",
+                        {'memory_percent': mp, 'process_ID': pid, 'name': name, 'memory_usage': vms, 'cpu': cpu,
+                         'ports': prt, 'path': path, 'version': version})
             conn.commit()
 
 
-
+collect_more_date()
 running = True
 while running:
-    choice = input("Please enter '1' to select all data, '2' to select by software, '0' To collect new data, any other key to stop\n")
+    choice = input("Please choose from the following"
+                   " '1' to select all data,"
+                   " '2' to select by software,"
+                   " '0' To collect new data,"
+                   " OR"
+                   " Enter any other key to stop\n")
 
     if choice == '1':
-        cur.execute("SELECT * FROM processes" )
+        cur.execute("SELECT * FROM processes")
         print(cur.fetchall())
     elif choice == '2':
         software = input(" Enter software name: \n")
         cur.execute("SELECT * FROM processes WHERE name=:name ", {'name': software})
         print(cur.fetchall())
     elif choice == '0':
-        collect()
+        collect_more_date()
     else:
         running = False
 
