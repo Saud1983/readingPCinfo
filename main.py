@@ -229,6 +229,111 @@ while running:
     else:
         running = False
 
+# another code to only collect data every 2 max_instancesimport psutil
+import re
+import sqlite3
+import time
+
+conn = sqlite3.connect('win_processes.db')
+
+cur = conn.cursor()
+
+cur.execute(""" CREATE TABLE processes (
+            memory_percent real,
+            process_ID integer,
+            name text,
+            memory_usage real,
+            cpu real,
+            ports text,
+            path text,
+            version text
+            )""")
+
+
+def data_getter():
+    list_of_process_objects = []
+    for proc in psutil.process_iter():
+        try:
+            p_info = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'exe', 'cwd'])
+
+            p_info['vms'] = proc.memory_info().vms / (1024 * 1024)
+            list_of_process_objects.append(p_info)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return list_of_process_objects
+
+
+def collect_more_date():
+    all_process_list = data_getter()
+
+    for i in all_process_list:
+        ports = []
+        # print("\n")
+        # print(f"memory_percent = {i['memory_percent']}")
+        mp = i['memory_percent']
+        # print(f"Process ID = {i['pid']}")
+        pid = i['pid']
+        # print(f"Name = {i['name']}")
+        name = i['name']
+        # print(f"Memory Usage = {i['vms']}")
+        vms = i['vms']
+        # print(f"CPU = {i['cpu_percent']}")
+        cpu = i['cpu_percent']
+        if len(i['connections']) > 0:
+            for x in range(len(i['connections'])):
+                ports.append(i['connections'][x][3][1])
+        # print(f"Ports = {ports}")
+        prt = str(ports)
+        # print(f"Path = {i['exe']}")
+        path = i['exe']
+        version_pattern = re.compile(r"(\d+ ?$|"
+                                     r"\d+.?\d+ ?$|"
+                                     r"\d+.?\d+.?\d+ ?$|"
+                                     r"\d+.?\d+.?\d+.?\d+ ?$|"
+                                     r"\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
+        if type(i['cwd']) == str:
+            matches = version_pattern.findall(i['cwd'])
+            if len(matches) > 0:
+                # print(f"Version = {matches[0]}")
+                version = matches[0]
+            else:
+                # print(f"Version = Path")  # {i['cwd']}")
+                version = 'Path'
+        else:
+            # print(f"Version = None")  # {i['cwd']}")
+            version = 'None'
+        with conn:
+            cur.execute("INSERT INTO processes VALUES "
+                        "(:memory_percent, :process_ID, :name, :memory_usage, :cpu, :ports, :path, :version)",
+                        {'memory_percent': mp, 'process_ID': pid, 'name': name, 'memory_usage': vms, 'cpu': cpu,
+                         'ports': prt, 'path': path, 'version': version})
+            conn.commit()
+
+
+running = True
+while running:
+    collect_more_date()
+    time.sleep(240)
+    # choice = input("Please choose from the following"
+    #                " '1' to select all data,"
+    #                " '2' to select by software,"
+    #                " '0' To collect new data,"
+    #                " OR"
+    #                " Enter any other key to stop\n")
+    #
+    # if choice == '1':
+    #     cur.execute("SELECT * FROM processes")
+    #     print(cur.fetchall())
+    # elif choice == '2':
+    #     software = input(" Enter software name: \n")
+    #     cur.execute("SELECT * FROM processes WHERE name=:name ", {'name': software})
+    #     print(cur.fetchall())
+    # elif choice == '0':
+    #     collect_more_date()
+    # else:
+    #     running = False
+
+
 #--------------------------------------------------------------------------------------
 # Test code for reading a dictionary
 
