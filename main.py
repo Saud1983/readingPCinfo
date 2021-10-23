@@ -182,10 +182,6 @@ def collect():
                 ports.append(i['connections'][x][3][1])
         # print(f"Ports = {ports}")
         prt = str(ports)
-        # if type(i['exe']) == str:
-        #     print(f"Path = {i['exe']}")
-        # else:
-        #     print(f"Path = {i['exe']}")
         # print(f"Path = {i['exe']}")
         path = i['exe']
         version_pattern = re.compile(r"(\d+ ?$|\d+.?\d+ ?$|\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
