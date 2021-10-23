@@ -131,7 +131,7 @@ import psutil
 import re
 import sqlite3
 
-conn = sqlite3.connect('memory.db')
+conn = sqlite3.connect('win_processes.db')
 
 cur = conn.cursor()
 
@@ -148,16 +148,16 @@ cur.execute(""" CREATE TABLE processes (
 
 
 def data_getter():
-    list_of_oric_objects = []
+    list_of_process_objects = []
     for proc in psutil.process_iter():
         try:
             p_info = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'exe', 'cwd'])
 
             p_info['vms'] = proc.memory_info().vms / (1024 * 1024)
-            list_of_oric_objects.append(p_info)
+            list_of_process_objects.append(p_info)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
-    return list_of_oric_objects
+    return list_of_process_objects
 
 
 def collect_more_date():
