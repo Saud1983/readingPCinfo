@@ -129,17 +129,28 @@ print(process_ids())
 # Bessssssssssssst code
 import psutil
 import re
+import sqlite3
+
+conn = sqlite3.connect('memory.db')
+
+cur = conn.cursor()
+
+cur.execute(""" CREATE TABLE processes (
+            memory_percent real,
+            process_ID integer,
+            name text,
+            memory_usage real,
+            cpu real,
+            ports text,
+            path text,
+            version text
+            )""")
 
 
 def get():
     listOfOricObjects = []
     for proc in psutil.process_iter():
         try:
-            # pinfo = proc.as_dict(attrs=['pid','name','memory_percent','cpu_percent','connections','cmdline***',
-            #                             'create_time***', 'cwd', 'environ***', 'exe', 'io_counters***', 'ionice***',
-            #                             'memory_full_info***', 'memory_info***', 'memory_maps***',
-            #                             'nice***', 'num_ctx_switches', 'num_handles', 'num_threads',
-            #                             'open_files','ppid', 'status', 'threads', ])
             pinfo = proc.as_dict(attrs=['pid', 'name', 'memory_percent', 'cpu_percent', 'connections', 'exe',
                                          'cwd'])
 
@@ -148,34 +159,69 @@ def get():
         except (psutil.NoSuchProcess,psutil.AccessDenied,psutil.ZombieProcess):
             pass
     return listOfOricObjects
-lista = get()
 
 
-for i in lista:
-    ports = []
-    print(f"\nmemory_percent = {i['memory_percent']}")
-    print(f"Process ID = {i['pid']}")
-    print(f"Name = {i['name']}")
-    print(f"Memory Usage = {i['vms']}")
-    print(f"CPU = {i['cpu_percent']}")
-    if len(i['connections']) > 0:
-        for x in range(len(i['connections'])):
-            ports.append(i['connections'][x][3][1])
-    print(f"Ports = {ports}")
-    if type(i['exe']) == str:
-        print(f"Path = {i['exe']}")
-    else:
-        print(f"Path = {i['exe']}")
-    version = re.compile(r"(\d+ ?$|\d+.?\d+ ?$|\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
-    if type(i['cwd']) == str:
-        matches = version.findall(i['cwd'])
-        if len(matches) > 0:
-            print(f"Version = {matches[0]}")
+def collect():
+    lista = get()
+
+
+    for i in lista:
+        ports = []
+        # print(f"\nmemory_percent = {i['memory_percent']}")
+        mp = i['memory_percent']
+        # print(f"Process ID = {i['pid']}")
+        pid = i['pid']
+        # print(f"Name = {i['name']}")
+        name = i['name']
+        # print(f"Memory Usage = {i['vms']}")
+        vms = i['vms']
+        # print(f"CPU = {i['cpu_percent']}")
+        cpu = i['cpu_percent']
+        if len(i['connections']) > 0:
+            for x in range(len(i['connections'])):
+                ports.append(i['connections'][x][3][1])
+        # print(f"Ports = {ports}")
+        prt = str(ports)
+        # if type(i['exe']) == str:
+        #     print(f"Path = {i['exe']}")
+        # else:
+        #     print(f"Path = {i['exe']}")
+        # print(f"Path = {i['exe']}")
+        path = i['exe']
+        version_pattern = re.compile(r"(\d+ ?$|\d+.?\d+ ?$|\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+ ?$|\d+.?\d+.?\d+.?\d+.?\d+ ?$)")
+        if type(i['cwd']) == str:
+            matches = version_pattern.findall(i['cwd'])
+            if len(matches) > 0:
+                # print(f"Version = {matches[0]}")
+                version = matches[0]
+            else:
+                # print(f"Version = Path")  # {i['cwd']}")
+                version = 'Path'
         else:
-            print(f"No Version = {i['cwd']}")
-    else:
-        print(f"Version is None = {i['cwd']}")
+            # print(f"Version = None")  # {i['cwd']}")
+            version = 'None'
 
+        with conn:
+            cur.execute("INSERT INTO processes VALUES (:memory_percent, :process_ID, :name, :memory_usage, :cpu, :ports, :path, :version)", {'memory_percent': mp ,'process_ID': pid, 'name': name, 'memory_usage': vms, 'cpu': cpu, 'ports': prt, 'path': path, 'version': version})
+            conn.commit()
+
+
+
+running = True
+while running:
+    choice = input("Please enter '1' to select all data, '2' to select by software, '0' To collect new data, any other key to stop\n")
+
+    if choice == '1':
+        cur.execute("SELECT * FROM processes" )
+        print(cur.fetchall())
+    elif choice == '2':
+        software = input(" Enter software name: \n")
+        cur.execute("SELECT * FROM processes WHERE name=:name ", {'name': software})
+        print(cur.fetchall())
+    elif choice == '0':
+        collect()
+    else:
+        running = False
 
 #--------------------------------------------------------------------------------------
 # Test code for reading a dictionary
