@@ -357,6 +357,8 @@ while running:
 # 'last_name': 'Ahmed',
 # 'mobile_no': 533222025}}}
 # ---------------------------------------------------------------------------------------
+# {'client00': {'account_info': {'account_balance': 0, 'account_id': 1022821753,'account_password': '0000','account_type': 'normal'},'personal_info': {'National_id': 1022818684,'first_name': 'Khalid','last_name': 'Waleed','mobile_no': 500053197}},'client0': {'account_info': {'account_balance': 0,'account_id': 1066865284,'account_password': '0000','account_type': 'normal'},'personal_info': {'National_id': 1066858745,'first_name': 'Ali','last_name': 'Ahmed','mobile_no': 533222025}}}
+
 
 import ast, pprint, re
 
