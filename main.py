@@ -356,35 +356,37 @@ while running:
 # 'first_name': 'Ali',
 # 'last_name': 'Ahmed',
 # 'mobile_no': 533222025}}}
+# ---------------------------------------------------------------------------------------
 
 import ast, pprint, re
 
 
-
 running = True
-while running:  # Program starts here.
-    choice1 = input("Enter the account number, or"
-                    " '1' to create a new account,"
-                    " '2' to check the clients book"
-                    " '0' to stop the program :\n")
-    a='a-zA-Z'
-    account = '1066865284'
+# while running:  # Program starts here.
+#     choice1 = input("Enter the account number, or"
+#                     " '1' to create a new account,"
+#                     " '2' to check the clients book"
+#                     " '0' to stop the program :\n")
+a='a-zA-Z'
+account = '1066865284'
+es="\{"
 
-    pattern = re.compile(fr"'[{a}]+_[{a}]+': ?{account},")
-    with open('clients_book.txt', 'r+') as c:
-        # cont = c.read()
-        matches = pattern.findall(c.read())
-        for m in matches:
-            print(m)
+# pattern = re.compile(r"'[a-zA-Z]+_[a-zA-Z]+': ?\{'[a-zA-Z]+_[a-zA-Z]+': ?(\d+,|\d+\.\d+,)")
+pattern = re.compile(fr"'[{a}]+_[{a}]+': ?{es}'[{a}]+_[{a}]+': ?(\d+,|\d+\.\d+,) ?'[{a}]+_[{a}]+':")
+
+with open('clients_book.txt', 'r+') as c:
+    # cont = c.read()
+    matches = pattern.finditer(c.read())
+    for m in matches:
+        print(m)
         # dictionary = ast.literal_eval(matches)
-        dictionary = {}
-    if choice1 == "2":  # 3rd choice
-        # print(dictionary)
-        choice1 = '1066865284'
-
-
-
-        for element in dictionary.items():
-            if str(element[1]['account_info']['account_id']) == choice1:  # Here the choice can be an account number
-                item = element[1]
-                pprint.pprint(item)
+    #     dictionary = {}
+    # if choice1 == "2":  # 3rd choice
+    #     # print(dictionary)
+    #     choice1 = '1066865284'
+    #     for element in dictionary.items():
+    #         if str(element[1]['account_info']['account_id']) == choice1:  # Here the choice can be an account number
+    #             item = element[1]
+    #             pprint.pprint(item)
+#
+# ---------------------------------------------------------------------------------------
