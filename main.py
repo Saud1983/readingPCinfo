@@ -334,30 +334,35 @@ while running:
     #     running = False
 
 
-#--------------------------------------------------------------------------------------
-# Test code for reading a dictionary
-
-# {'client00': {'account_info': {
-# 'account_balance': 0,
-# 'account_id': 1022821753,
-# 'account_password': '0000',
-# 'account_type': 'normal'},
-# 'personal_info': {
-# 'National_id': 1022818684,
-# 'first_name': 'Khalid',
-# 'last_name': 'Waleed',
-# 'mobile_no': 500053197}},
-# 'client0': {'account_info': {
-# 'account_balance': 0,
-# 'account_id': 1066865284,
-# 'account_password': '0000',
-# 'account_type': 'normal'},
-# 'personal_info': {'National_id': 1066858745,
-# 'first_name': 'Ali',
-# 'last_name': 'Ahmed',
-# 'mobile_no': 533222025}}}
 # ---------------------------------------------------------------------------------------
-# {'client00': {'account_info': {'account_balance': 0, 'account_id': 1022821753,'account_password': '0000','account_type': 'normal'},'personal_info': {'National_id': 1022818684,'first_name': 'Khalid','last_name': 'Waleed','mobile_no': 500053197}},'client0': {'account_info': {'account_balance': 0,'account_id': 1066865284,'account_password': '0000','account_type': 'normal'},'personal_info': {'National_id': 1066858745,'first_name': 'Ali','last_name': 'Ahmed','mobile_no': 533222025}}}
+# {'client00': {'account_info': {'account_balance': 0, 'account_id': 1022821753,'account_password': '0000', 'account_type': 'normal'},'personal_info': {'National_id': 1022818111,'first_name': 'Khalid','last_name': 'Waleed','mobile_no': 500011117}},'client0': {'account_info': {'account_balance': 0,'account_id': 1066865284,'account_password': '0000','account_type': 'normal'},'personal_info': {'National_id': 1066858745,'first_name': 'Ali','last_name': 'Ahmed','mobile_no': 533112025}}}
+#
+#
+#
+# {'client0': {'account_info': {'account_balance': 0,
+#                               'account_id': 1022821753,
+#                               'account_password': '0000',
+#                               'account_type': 'normal'},
+#              'personal_info': {'National_id': 1066858745,
+#                                'first_name': 'Ali',
+#                                'last_name': 'Ahmed',
+#                                'mobile_no': 500222025}},
+#  'client00': {'account_info': {'account_balance': 0,
+#                                'account_id': 1022821555,
+#                                'account_password': '0000',
+#                                'account_type': 'normal'},
+#               'personal_info': {'National_id': 1022111684,
+#                                 'first_name': 'Khalid',
+#                                 'last_name': 'Waleed',
+#                                 'mobile_no': 500012397}},
+#  'client1': {'account_info': {'account_balance': 0,
+#                               'account_id': 1200226171,
+#                               'account_password': '0000',
+#                               'account_type': 'normal'},
+#              'personal_info': {'National_id': 1200220022,
+#                                'first_name': 'khalid',
+#                                'last_name': 'ali',
+#                                'mobile_no': 500005999}}}
 
 
 import ast, pprint, re
@@ -370,15 +375,21 @@ running = True
 #                     " '2' to check the clients book"
 #                     " '0' to stop the program :\n")
 a='a-zA-Z'
-account = '1066865284'
+# account = '1066865284'
+account = '1022821753'
 es="\{"
+es2="\}"
+w="'\w+'"
+grp='(?:\d+|\d+\.\d+)'
+ppf=' ?\n? *'
 
 # pattern = re.compile(r"'[a-zA-Z]+_[a-zA-Z]+': ?\{'[a-zA-Z]+_[a-zA-Z]+': ?(\d+,|\d+\.\d+,)")
-pattern = re.compile(fr"'[{a}]+_[{a}]+': ?{es}'[{a}]+_[{a}]+': ?(\d+,|\d+\.\d+,) ?'[{a}]+_[{a}]+':")
-
+# pattern = re.compile(fr"{w}: ?{es}{w}: ?{grp}, ?{w}: ?{account}, ?{w}: ?'\d+', ?{w}: ?'\w+'{es2},{w}: ?{es}{w}: ?\d+, ?{w}: ?'\w+', ?{w}: ?'\w+', ?{w}: ?\d+{es2}")
+pattern = re.compile(fr"{w}: ?{es}{w}: ?{grp},{ppf}{w}: ?{account},{ppf}{w}: ?'\d+',{ppf}{w}: ?'\w+'{es2},{ppf}{w}: ?{es}{w}: ?\d+,{ppf}{w}: ?'\w+',{ppf}{w}: ?'\w+',{ppf}{w}: ?\d+{es2}")
 with open('clients_book.txt', 'r+') as c:
-    # cont = c.read()
-    matches = pattern.finditer(c.read())
+    cont = c.read()
+    # state = c.write()
+    matches = pattern.findall(cont)
     for m in matches:
         print(m)
         # dictionary = ast.literal_eval(matches)
