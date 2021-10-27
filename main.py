@@ -231,13 +231,15 @@
 #
 # # another code to only collect data every 2 max_instancesimport psutil
 
+
 import psutil
 import re
 import sqlite3
 import time
+import hashlib
 
 
-DEBUG = False
+DEBUG = True
 
 conn = sqlite3.connect('win_processes.db')
 
@@ -251,8 +253,33 @@ cur.execute(""" CREATE TABLE processes (
             cpu real,
             ports text,
             path text,
+            hash256 blob,
             version text
             )""")
+
+
+def hasher(path):
+    input_path = f"{path}"
+    # correct_sum = "a93969ba56a867f8fae9a5be8c88d2ac26cd2e0cbda0253fa2e4ebb683f3102f"
+    hasher = hashlib.sha256()
+    with open(input_path, "rb") as f:
+        while True:
+            chunk = f.read(524288)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    output = hasher.hexdigest()
+    # print("Result:", output)
+    # if correct_sum == output:
+    #     print("The sums match!", correct_sum, "=", 'cmd_output')
+    # else:
+    #     print(
+    #         "The sums don't match! Check that your inputs were correct",
+    #         correct_sum,
+    #         "is not equal to",
+    #         'cmd_output',
+    #     )
+    return output
 
 
 def data_getter():
@@ -291,6 +318,12 @@ def collect_more_date():
         prt = str(ports)
         # print(f"Path = {i['exe']}")
         path = i['exe']
+
+        if type(path) == str and len(path) > 15:  # Because some returned paths are NoneType and some aren't paths
+            hash256 = hasher(path)
+        else:
+            hash256 = 'No Hash for this process'
+
         version_pattern = re.compile(r"(\d+ ?$|"
                                      r"\d+.?\d+ ?$|"
                                      r"\d+.?\d+.?\d+ ?$|"
@@ -309,9 +342,9 @@ def collect_more_date():
             version = 'None'
         with conn:
             cur.execute("INSERT INTO processes VALUES "
-                        "(:memory_percent, :process_ID, :name, :memory_usage, :cpu, :ports, :path, :version)",
+                        "(:memory_percent, :process_ID, :name, :memory_usage, :cpu, :ports, :path, :hash256, :version)",
                         {'memory_percent': mp, 'process_ID': pid, 'name': name, 'memory_usage': vms, 'cpu': cpu,
-                         'ports': prt, 'path': path, 'version': version})
+                         'ports': prt,'hash256': hash256, 'path': path, 'version': version})
             conn.commit()
 
 
@@ -354,5 +387,3 @@ else:
     while running:
         collect_more_date()
         time.sleep(30)
-
-
