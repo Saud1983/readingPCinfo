@@ -239,7 +239,7 @@ import time
 import hashlib
 
 
-DEBUG = True
+DEBUG = True  # To give the programmer a choice between starting the program in debugging mode or production mode
 
 conn = sqlite3.connect('win_processes.db')
 
@@ -259,16 +259,25 @@ cur.execute(""" CREATE TABLE processes (
 
 
 def hasher(path):
-    input_path = f"{path}"
-    # correct_sum = "a93969ba56a867f8fae9a5be8c88d2ac26cd2e0cbda0253fa2e4ebb683f3102f"
-    hasher = hashlib.sha256()
-    with open(input_path, "rb") as f:
-        while True:
-            chunk = f.read(524288)
-            if not chunk:
+    """ This function is to calculate the hash based on sha256 algorithm by passing the 'path' argument, the commented
+    lines are to there for future needs purposes to compare between current hash and the previous hash"""
+
+    # correct_sum = "a93969ba56a867f8fae9a5be8c88d2ac26cd2e0cbda0253fa2e4ebb683f3102f" # For future use
+
+    hasher = hashlib.sha256()  # To initialize a variable that uses sha256 algorithm for hashing
+    with open(path, "rb") as f:  # Reading the exe file in binary mode
+        while True:  # Infinite loop that only stops using a break if the file has no more content inside
+            # good idea not to fill up the memory by reading the full content of a file at once, the file could be huge
+            chunk = f.read(524288)  # Temporary variable that holds a different part of a file with limited size
+            if not chunk:  # Means if there is no contents to read break the while loop
                 break
-            hasher.update(chunk)
-    output = hasher.hexdigest()
+
+            # Note: (hashing 'abc' + hashing 'def') will give the same result as hashing 'abcdef' all together
+            hasher.update(chunk)  # Add the new part to the hasher for applying the sha256 on it
+    output = hasher.hexdigest()  # Is the method to give the hashing result in hexadecimal type
+
+    # For future use to pass to arguments, one is the current path to calculate the hash, and the other is previous hash
+
     # print("Result:", output)
     # if correct_sum == output:
     #     print("The sums match!", correct_sum, "=", 'cmd_output')
@@ -279,7 +288,8 @@ def hasher(path):
     #         "is not equal to",
     #         'cmd_output',
     #     )
-    return output
+
+    return output  # Return the result as hexadecimal code
 
 
 def data_getter():
