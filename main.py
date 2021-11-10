@@ -237,14 +237,11 @@ import re
 import sqlite3
 import time
 import hashlib
-
+# from threading import Timer
 
 DEBUG = True  # To give the programmer a choice between starting the program in debugging mode or production mode
-
 conn = sqlite3.connect('win_processes.db')
-
 cur = conn.cursor()
-
 cur.execute(""" CREATE TABLE processes (
             memory_percent real,
             process_ID integer,
@@ -263,6 +260,7 @@ def hasher(path):
     lines are to there for future needs purposes to compare between current hash and the previous hash"""
 
     # correct_sum = "a93969ba56a867f8fae9a5be8c88d2ac26cd2e0cbda0253fa2e4ebb683f3102f" # For future use
+    # print('hasher started'+ ' ' + time.strftime('%H:%M:%S'))
 
     hasher = hashlib.sha256()  # To initialize a variable that uses sha256 algorithm for hashing
     with open(path, "rb") as f:  # Reading the exe file in binary mode
@@ -288,11 +286,11 @@ def hasher(path):
     #         "is not equal to",
     #         'cmd_output',
     #     )
-
+    # print('Hasher Finished'+ ' ' + time.strftime('%H:%M:%S'))
     return output  # Return the result as hexadecimal code
 
-
 def data_getter():
+    print('Data getter started'+ ' ' + time.strftime('%H:%M:%S'))
     list_of_process_objects = []
     for proc in psutil.process_iter():
         try:
@@ -302,10 +300,11 @@ def data_getter():
             list_of_process_objects.append(p_info)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
+    print('Data getter Finished'+ ' ' + time.strftime('%H:%M:%S'))
     return list_of_process_objects
 
-
 def collect_more_date():
+    print('Start Collecting Data'+ ' ' + time.strftime('%H:%M:%S'))
     all_process_list = data_getter()
 
     for i in all_process_list:
@@ -356,44 +355,57 @@ def collect_more_date():
                         {'memory_percent': mp, 'process_ID': pid, 'name': name, 'memory_usage': vms, 'cpu': cpu,
                          'ports': prt,'hash256': hash256, 'path': path, 'version': version})
             conn.commit()
+    print('Data Collection Finished'+ ' ' + time.strftime('%H:%M:%S'))
+
+def user_interact():
+    choice = input("Please choose from the following"
+                   " '0' To collect new data, "
+                   " '1' to select all data,"
+                   " '2' to select by software,"
+                   " '3' to select by process id,"
+                   " OR"
+                   " Enter '@@' to stop\n")
+
+    if choice == '1':
+        cur.execute("SELECT * FROM processes")
+        all_processes_list = cur.fetchall()
+        for _ in all_processes_list:
+            print(_)
+
+    elif choice == '2':
+        software = input(" Enter software name: \n")
+        cur.execute("SELECT * FROM processes WHERE name=:name ", {'name': software})
+        software_list = cur.fetchall()
+        for _ in software_list:
+            print(_)
+
+    elif choice == '3':
+        process_id = input(" Enter process ID: \n")
+        cur.execute("SELECT * FROM processes WHERE process_id=:process_id ", {'process_id': process_id})
+        process_list = cur.fetchall()
+        for _ in process_list:
+            print(_)
+
+    elif choice == '0':
+        collect_more_date()
+    elif choice == "@@":
+        global running
+        running = False
+    else:
+        print('Invalid Entry')
+
+
+
 
 
 running = True
 if DEBUG:
     collect_more_date()
     while running:
-        choice = input("Please choose from the following"
-                       " '0' To collect new data, "
-                       " '1' to select all data,"
-                       " '2' to select by software,"
-                       " '3' to select by process id,"
-                       " OR"
-                       " Enter '@@' to stop\n")
+        user_interact()
 
-        if choice == '1':
-            cur.execute("SELECT * FROM processes")
-            all_processes_list = cur.fetchall()
-            for _ in all_processes_list:
-                print(_)
-        elif choice == '2':
-            software = input(" Enter software name: \n")
-            cur.execute("SELECT * FROM processes WHERE name=:name ", {'name': software})
-            software_list = cur.fetchall()
-            for _ in software_list:
-                print(_)
-        elif choice == '3':
-            process_id = input(" Enter process ID: \n")
-            cur.execute("SELECT * FROM processes WHERE process_id=:process_id ", {'process_id': process_id})
-            process_list = cur.fetchall()
-            for _ in process_list:
-                print(_)
-        elif choice == '0':
-            collect_more_date()
-        elif choice == "@@":
-            running = False
-        else:
-            print('Invalid Entry')
 else:
     while running:
         collect_more_date()
         time.sleep(30)
+
