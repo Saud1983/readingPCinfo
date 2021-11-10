@@ -237,7 +237,7 @@ import re
 import sqlite3
 import time
 import hashlib
-# from threading import Timer
+from threading import Timer
 
 DEBUG = True  # To give the programmer a choice between starting the program in debugging mode or production mode
 conn = sqlite3.connect('win_processes.db')
@@ -289,6 +289,7 @@ def hasher(path):
     # print('Hasher Finished'+ ' ' + time.strftime('%H:%M:%S'))
     return output  # Return the result as hexadecimal code
 
+
 def data_getter():
     print('Data getter started'+ ' ' + time.strftime('%H:%M:%S'))
     list_of_process_objects = []
@@ -303,8 +304,9 @@ def data_getter():
     print('Data getter Finished'+ ' ' + time.strftime('%H:%M:%S'))
     return list_of_process_objects
 
+
 def collect_more_date():
-    print('Start Collecting Data'+ ' ' + time.strftime('%H:%M:%S'))
+
     all_process_list = data_getter()
 
     for i in all_process_list:
@@ -357,7 +359,9 @@ def collect_more_date():
             conn.commit()
     print('Data Collection Finished'+ ' ' + time.strftime('%H:%M:%S'))
 
-def user_interact():
+
+def user_interact(message):
+    display(message)
     choice = input("Please choose from the following"
                    " '0' To collect new data, "
                    " '1' to select all data,"
@@ -395,17 +399,35 @@ def user_interact():
         print('Invalid Entry')
 
 
-
+def display(message):
+    print(message + ' ' + time.strftime('%H:%M:%S'))
 
 
 running = True
-if DEBUG:
-    collect_more_date()
-    while running:
-        user_interact()
+# if DEBUG:
+#     collect_more_date()
+#     while running:
+#         user_interact()
+#
+# else:
+#     while running:
+#         collect_more_date()
+#         time.sleep(30)
 
-else:
-    while running:
-        collect_more_date()
-        time.sleep(30)
 
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args,**self.kwargs)
+        print('Done')
+
+
+
+timer = RepeatTimer(15,user_interact,['counting'])
+timer.start()
+
+print('threading started')
+time.sleep(60)
+print('threading finished')
+
+timer.cancel()
