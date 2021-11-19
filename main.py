@@ -21,6 +21,13 @@ cur.execute(""" CREATE TABLE processes (
             )""")
 
 
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args,**self.kwargs)
+        print('Done')
+
+
 def hasher(path):
     """ This function is to calculate the hash based on sha256 algorithm by passing the 'path' argument, the commented
     lines are to there for future needs purposes to compare between current hash and the previous hash"""
@@ -57,7 +64,7 @@ def hasher(path):
 
 
 def data_getter():
-    print('Data getter started'+ ' ' + time.strftime('%H:%M:%S'))
+    # print('Data getter started'+ ' ' + time.strftime('%H:%M:%S'))
     list_of_process_objects = []
     for proc in psutil.process_iter():
         try:
@@ -67,12 +74,12 @@ def data_getter():
             list_of_process_objects.append(p_info)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
-    print('Data getter Finished'+ ' ' + time.strftime('%H:%M:%S'))
+    # print('Data getter Finished'+ ' ' + time.strftime('%H:%M:%S'))
     return list_of_process_objects
 
 
 def collect_more_date():
-
+    print('Data Collection ٍStarted' + ' ' + time.strftime('%H:%M:%S'))
     all_process_list = data_getter()
 
     for i in all_process_list:
@@ -127,7 +134,8 @@ def collect_more_date():
 
 
 def user_interact(message):
-    display(message)
+    message1 = message
+    # display(message1)
     choice = input("Please choose from the following"
                    " '0' To collect new data, "
                    " '1' to select all data,"
@@ -170,30 +178,23 @@ def display(message):
 
 
 running = True
-# if DEBUG:
-#     collect_more_date()
-#     while running:
-#         user_interact()
-#
-# else:
-#     while running:
-#         collect_more_date()
-#         time.sleep(30)
+m = 0
+print('Auto data collection + user interaction started')
+while running:
+    print(f'loop number: {m}')
+    if DEBUG:
+        DEBUG = False
+        timer = RepeatTimer(25, user_interact, ['user interact Started'])
+        timer.start()
 
+    else:
+        DEBUG = True
+        collect_more_date()
+        time.sleep(40)
 
-class RepeatTimer(Timer):
-    def run(self):
-        while not self.finished.wait(self.interval):
-            self.function(*self.args,**self.kwargs)
-        print('Done')
+    m += 1
 
-
-
-timer = RepeatTimer(15,user_interact,['counting'])
-timer.start()
-
-print('threading started')
-time.sleep(60)
-print('threading finished')
-
+# if not running:
+print('Auto data collection has stopped')
 timer.cancel()
+
