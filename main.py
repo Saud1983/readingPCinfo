@@ -36,30 +36,33 @@ def hasher(path):
     # print('hasher started'+ ' ' + time.strftime('%H:%M:%S'))
 
     hasher = hashlib.sha256()  # To initialize a variable that uses sha256 algorithm for hashing
-    with open(path, "rb") as f:  # Reading the exe file in binary mode
-        while True:  # Infinite loop that only stops using a break if the file has no more content inside
-            # good idea not to fill up the memory by reading the full content of a file at once, the file could be huge
-            chunk = f.read(524288)  # Temporary variable that holds a different part of a file with limited size
-            if not chunk:  # Means if there is no contents to read break the while loop
-                break
+    try:
+        with open(path, "rb") as f:  # Reading the exe file in binary mode
+            while True:  # Infinite loop that only stops using a break if the file has no more content inside
+                # good idea not to fill up the memory by reading the full content of a file at once, the file could be huge
+                chunk = f.read(524288)  # Temporary variable that holds a different part of a file with limited size
+                if not chunk:  # Means if there is no contents to read break the while loop
+                    break
 
-            # Note: (hashing 'abc' + hashing 'def') will give the same result as hashing 'abcdef' all together
-            hasher.update(chunk)  # Add the new part to the hasher for applying the sha256 on it
-    output = hasher.hexdigest()  # Is the method to give the hashing result in hexadecimal type
+                # Note: (hashing 'abc' + hashing 'def') will give the same result as hashing 'abcdef' all together
+                hasher.update(chunk)  # Add the new part to the hasher for applying the sha256 on it
+        output = hasher.hexdigest()  # Is the method to give the hashing result in hexadecimal type
 
-    # For future use to pass to arguments, one is the current path to calculate the hash, and the other is previous hash
+        # For future use to pass to arguments, one is the current path to calculate the hash, and the other is previous hash
 
-    # print("Result:", output)
-    # if correct_sum == output:
-    #     print("The sums match!", correct_sum, "=", 'cmd_output')
-    # else:
-    #     print(
-    #         "The sums don't match! Check that your inputs were correct",
-    #         correct_sum,
-    #         "is not equal to",
-    #         'cmd_output',
-    #     )
-    # print('Hasher Finished'+ ' ' + time.strftime('%H:%M:%S'))
+        # print("Result:", output)
+        # if correct_sum == output:
+        #     print("The sums match!", correct_sum, "=", 'cmd_output')
+        # else:
+        #     print(
+        #         "The sums don't match! Check that your inputs were correct",
+        #         correct_sum,
+        #         "is not equal to",
+        #         'cmd_output',
+        #     )
+        # print('Hasher Finished'+ ' ' + time.strftime('%H:%M:%S'))
+    except PermissionError:
+        output = 'No Data'
     return output  # Return the result as hexadecimal code
 
 
@@ -89,6 +92,8 @@ def collect_more_date():
         mp = i['memory_percent']
         # print(f"Process ID = {i['pid']}")
         pid = i['pid']
+        if pid not in processes_ids:
+            processes_ids.append(pid)
         # print(f"Name = {i['name']}")
         name = i['name']
         # print(f"Memory Usage = {i['vms']}")
@@ -133,50 +138,68 @@ def collect_more_date():
     print('Data Collection Finished'+ ' ' + time.strftime('%H:%M:%S'))
 
 
-def user_interact(message):
-    message1 = message
-    # display(message1)
-    choice = input("Please choose from the following"
-                   " '0' To collect new data, "
-                   " '1' to select all data,"
-                   " '2' to select by software,"
-                   " '3' to select by process id,"
-                   " OR"
-                   " Enter '@@' to stop\n")
 
-    if choice == '1':
-        cur.execute("SELECT * FROM processes")
-        all_processes_list = cur.fetchall()
-        for _ in all_processes_list:
-            print(_)
+# def user_interact(message):
+#     message1 = message
+#     # display(message1)
+#     choice = input("Please choose from the following"
+#                    " '0' To collect new data, "
+#                    " '1' to select all data,"
+#                    " '2' to select by software,"
+#                    " '3' to select by process id,"
+#                    " OR"
+#                    " Enter '@@' to stop\n")
+#
+#     if choice == '1':
+#         cur.execute("SELECT * FROM processes")
+#         all_processes_list = cur.fetchall()
+#         for _ in all_processes_list:
+#             print(_)
+#
+#     elif choice == '2':
+#         software = input(" Enter software name: \n")
+#         cur.execute("SELECT * FROM processes WHERE name=:name ", {'name': software})
+#         software_list = cur.fetchall()
+#         for _ in software_list:
+#             print(_)
+#
+#     elif choice == '3':
+#         process_id = input(" Enter process ID: \n")
+#         cur.execute("SELECT * FROM processes WHERE process_id=:process_id ", {'process_id': process_id})
+#         process_list = cur.fetchall()
+#         for _ in process_list:
+#             print(_)
+#
+#     elif choice == '0':
+#         collect_more_date()
+#     elif choice == "@@":
+#         global running
+#         running = False
+#     else:
+#         print('Invalid Entry')
 
-    elif choice == '2':
-        software = input(" Enter software name: \n")
-        cur.execute("SELECT * FROM processes WHERE name=:name ", {'name': software})
-        software_list = cur.fetchall()
-        for _ in software_list:
-            print(_)
-
-    elif choice == '3':
-        process_id = input(" Enter process ID: \n")
+def analyze_cpu_usage(message):
+    display(message)
+    for process_id in processes_ids:
+        counter = 0
+        print(process_id)
         cur.execute("SELECT * FROM processes WHERE process_id=:process_id ", {'process_id': process_id})
-        process_list = cur.fetchall()
-        for _ in process_list:
+        same_process_list = cur.fetchall()
+        for _ in same_process_list:
             print(_)
+            counter += 1
+        print(counter)
+        print("="*150)
 
-    elif choice == '0':
-        collect_more_date()
-    elif choice == "@@":
-        global running
-        running = False
-    else:
-        print('Invalid Entry')
+
+
 
 
 def display(message):
     print(message + ' ' + time.strftime('%H:%M:%S'))
 
 
+processes_ids = []
 running = True
 m = 0
 print('Auto data collection + user interaction started')
@@ -184,17 +207,17 @@ while running:
     print(f'loop number: {m}')
     if DEBUG:
         DEBUG = False
-        timer = RepeatTimer(25, user_interact, ['user interact Started'])
+        timer = RepeatTimer(60, analyze_cpu_usage, ['Analyze CPU Started'])
         timer.start()
 
     else:
         DEBUG = True
         collect_more_date()
-        time.sleep(40)
+        time.sleep(23)
 
     m += 1
 
 # if not running:
 print('Auto data collection has stopped')
-timer.cancel()
+# timer.cancel()
 
