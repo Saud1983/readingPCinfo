@@ -1,11 +1,19 @@
 import psutil
 import re
 import sqlite3
-import time
 import hashlib
+import threading
+import multiprocessing
+import logging
+from threading import Thread
 from threading import Timer
+from queue import Queue
+import time
 
-DEBUG = True  # To give the programmer a choice between starting the program in debugging mode or production mode
+# DEBUG = True  # To give the programmer a choice between starting the program in debugging mode or production mode
+logging.basicConfig(format='%(levelname)s - %(asctime)s.%(msecs)03d: %(message)s',datefmt='%H:%M:%S', level=logging.DEBUG)
+
+
 conn = sqlite3.connect('win_processes.db', check_same_thread=False)
 cur = conn.cursor()
 cur.execute(""" CREATE TABLE processes (
@@ -19,13 +27,6 @@ cur.execute(""" CREATE TABLE processes (
             hash256 blob,
             version text
             )""")
-
-
-class RepeatTimer(Timer):
-    def run(self):
-        while not self.finished.wait(self.interval):
-            self.function(*self.args,**self.kwargs)
-        print('Done')
 
 
 def hasher(path):
@@ -81,9 +82,11 @@ def data_getter():
     return list_of_process_objects
 
 
-def collect_more_date():
+def collect_more_date(queue,finished):
     print('Data Collection ٍStarted' + ' ' + time.strftime('%H:%M:%S'))
     all_process_list = data_getter()
+
+    finished.put(False)
 
     for i in all_process_list:
         ports = []
@@ -135,8 +138,10 @@ def collect_more_date():
                         {'memory_percent': mp, 'process_ID': pid, 'name': name, 'memory_usage': vms, 'cpu': cpu,
                          'ports': prt,'hash256': hash256, 'path': path, 'version': version})
             conn.commit()
-    print('Data Collection Finished'+ ' ' + time.strftime('%H:%M:%S'))
-
+        queue.put(i)
+        display(f'Producing process: {i}')
+    finished.put(True)
+    display('finished')
 
 
 # def user_interact(message):
@@ -178,46 +183,63 @@ def collect_more_date():
 #     else:
 #         print('Invalid Entry')
 
-def analyze_cpu_usage(message):
-    display(message)
-    for process_id in processes_ids:
-        counter = 0
-        print(process_id)
-        cur.execute("SELECT * FROM processes WHERE process_id=:process_id ", {'process_id': process_id})
-        same_process_list = cur.fetchall()
-        for _ in same_process_list:
-            print(_)
-            counter += 1
-        print(counter)
-        print("="*150)
+def analyze_cpu_usage(work,finished):
+    # while True:
+        if not work.empty():
+            print('work not empty')
+            for process_id in processes_ids:
+                counter = 0
+                print(process_id)
+                cur.execute("SELECT * FROM processes WHERE process_id=:process_id ", {'process_id': process_id})
+                same_process_list = cur.fetchall()
+                for _ in same_process_list:
+                    print(_)
+                    counter += 1
+                display(f'Consuming process_id: {process_id}')
+                print("="*150)
+        else:
+            print('work empty')
+            q = finished.get()
+            # if q == True:
+            #     # break
+        display('finished')
 
 
+def work_process(queue, finished):
+    collect_more_date(queue, finished)
 
+
+def consume_process(work, finished):
+    analyze_cpu_usage(work, finished)
 
 
 def display(message):
-    print(message + ' ' + time.strftime('%H:%M:%S'))
+    threadname = threading.current_thread().name
+    processname = multiprocessing.current_process().name
+    logging.info(f'{processname}\{threadname}: {message}')
 
 
 processes_ids = []
 running = True
-m = 0
-print('Auto data collection + user interaction started')
+#Main function
 while running:
-    print(f'loop number: {m}')
-    if DEBUG:
-        DEBUG = False
-        timer = RepeatTimer(60, analyze_cpu_usage, ['Analyze CPU Started'])
-        timer.start()
+    work = Queue()
+    finished = Queue()
 
-    else:
-        DEBUG = True
-        collect_more_date()
-        time.sleep(23)
+    producer = Thread(target=work_process,args=[work,finished],daemon=True)
+    consumer = Thread(target=consume_process,args=[work,finished],daemon=True)
 
-    m += 1
+    producer.start()
+    consumer.start()
 
-# if not running:
-print('Auto data collection has stopped')
-# timer.cancel()
+    time.sleep(23)
 
+
+
+    producer.join()
+    display('Producer has finished')
+
+    consumer.join()
+    display('Consumer has finished')
+
+    display('Finished')
