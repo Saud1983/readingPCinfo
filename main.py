@@ -183,10 +183,10 @@ def collect_more_date(queue,finished):
 #     else:
 #         print('Invalid Entry')
 
-def analyze_cpu_usage(work,finished):
-    # while True:
+def analyze_test(work,finished):
+
         if not work.empty():
-            print('work not empty')
+            # print('work not empty')
             for process_id in processes_ids:
                 counter = 0
                 print(process_id)
@@ -195,22 +195,15 @@ def analyze_cpu_usage(work,finished):
                 for _ in same_process_list:
                     print(_)
                     counter += 1
-                display(f'Consuming process_id: {process_id}')
+                print(counter)
                 print("="*150)
+                # display(f'Consuming  process_id: {process_id}')
         else:
             print('work empty')
             q = finished.get()
-            # if q == True:
-            #     # break
+
         display('finished')
 
-
-def work_process(queue, finished):
-    collect_more_date(queue, finished)
-
-
-def consume_process(work, finished):
-    analyze_cpu_usage(work, finished)
 
 
 def display(message):
@@ -221,25 +214,30 @@ def display(message):
 
 processes_ids = []
 running = True
+
+
 #Main function
-while running:
+def main():
     work = Queue()
     finished = Queue()
 
-    producer = Thread(target=work_process,args=[work,finished],daemon=True)
-    consumer = Thread(target=consume_process,args=[work,finished],daemon=True)
+    producer = Thread(target=collect_more_date,args=[work,finished],daemon=True)
+    consumer = Thread(target=analyze_test,args=[work,finished],daemon=True)
 
     producer.start()
+    time.sleep(19)
     consumer.start()
 
-    time.sleep(23)
-
-
-
     producer.join()
-    display('Producer has finished')
+    # display('Producer has finished')
 
     consumer.join()
-    display('Consumer has finished')
+    # display('Consumer has finished')
 
-    display('Finished')
+    # display('Finished')
+
+
+while True:
+    if __name__ == "__main__":
+        main()
+        time.sleep(35)
