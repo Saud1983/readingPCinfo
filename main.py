@@ -141,7 +141,8 @@ def collect_more_date(queue,finished):
         queue.put(i)
         display(f'Producing process: {i}')
     finished.put(True)
-    display('finished')
+    time.sleep(1)
+    display('Data collection has finished')
 
 
 # def user_interact(message):
@@ -189,20 +190,20 @@ def analyze_test(work,finished):
             # print('work not empty')
             for process_id in processes_ids:
                 counter = 0
-                print(process_id)
+                print(f"Process ID: {process_id}")
                 cur.execute("SELECT * FROM processes WHERE process_id=:process_id ", {'process_id': process_id})
                 same_process_list = cur.fetchall()
                 for _ in same_process_list:
                     print(_)
                     counter += 1
-                print(counter)
+                print(f"Number of retrieves for this process is {counter}")
                 print("="*150)
                 # display(f'Consuming  process_id: {process_id}')
         else:
             print('work empty')
             q = finished.get()
-
-        display('finished')
+        time.sleep(1)
+        display('Analyzing has finished')
 
 
 
@@ -228,13 +229,14 @@ def main():
     time.sleep(19)
     consumer.start()
 
+
     producer.join()
-    # display('Producer has finished')
+    display('Producer has finished')
 
     consumer.join()
-    # display('Consumer has finished')
+    display('Consumer has finished')
 
-    # display('Finished')
+    # display('Finished All')
 
 
 while True:
