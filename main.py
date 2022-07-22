@@ -226,7 +226,7 @@ def main():
     consumer = Thread(target=analyze_test,args=[work,finished],daemon=True)
 
     producer.start()
-    time.sleep(19)
+    time.sleep(30)
     consumer.start()
 
 
@@ -236,10 +236,10 @@ def main():
     consumer.join()
     display('Consumer has finished')
 
-    # display('Finished All')
+    display('Finished All')
 
 
 while True:
     if __name__ == "__main__":
         main()
-        time.sleep(35)
+        time.sleep(50)
